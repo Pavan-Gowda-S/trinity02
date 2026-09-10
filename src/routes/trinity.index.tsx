@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { atmClusters, clusterById, inr, riskLevel, type AtmCluster } from "@/lib/trinity/data";
 import { useTrinity } from "@/lib/trinity/store";
-import { Panel, RiskPill, SectionTitle, StatCard } from "@/components/trinity/ui";
+import { BackLink, Panel, RiskPill, SectionTitle, StatCard } from "@/components/trinity/ui";
 import { RiskMap } from "@/components/trinity/RiskMap";
 import { ClusterDetail } from "@/components/trinity/ClusterDetail";
 import { ArrowUpRight } from "lucide-react";
@@ -26,6 +26,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-7">
+      <BackLink fallback="/" label="Back" />
       <header>
         <p className="label-xs">Operational overview</p>
         <h1 className="mt-1 text-2xl font-light">What is happening right now</h1>

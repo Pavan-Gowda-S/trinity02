@@ -175,6 +175,52 @@
   }
 }
 
+/* The wordmark floats up, then bounces gently back down */
+@keyframes trinity-bounce {
+  0% {
+    transform: translate3d(0, 6vh, 0);
+  }
+  45% {
+    transform: translate3d(0, -6vh, 0);
+  }
+  60% {
+    transform: translate3d(0, -3.4vh, 0);
+  }
+  78% {
+    transform: translate3d(0, 3vh, 0);
+  }
+  90% {
+    transform: translate3d(0, 4.8vh, 0);
+  }
+  100% {
+    transform: translate3d(0, 6vh, 0);
+  }
+}
+
+@keyframes trinity-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.75;
+  }
+}
+
+@keyframes trinity-roam {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(2.5vw, -2vh, 0);
+  }
+  100% {
+    transform: translate3d(-2vw, 2.5vh, 0);
+  }
+}
+
 @keyframes trinity-orbit {
   0% {
     transform: rotate(0deg) translateX(var(--orbit-r)) rotate(0deg);
