@@ -10,33 +10,196 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BankRouteImport } from './routes/bank'
+import { Route as CitizenRouteImport } from './routes/citizen'
+import { Route as I4cRouteImport } from './routes/i4c'
+import { Route as TrinityRouteImport } from './routes/trinity'
+import { Route as TrinityIndexRouteImport } from './routes/trinity.index'
+import { Route as TrinityAlertsRouteImport } from './routes/trinity.alerts'
+import { Route as TrinityAuditRouteImport } from './routes/trinity.audit'
+import { Route as TrinityHeatmapRouteImport } from './routes/trinity.heatmap'
+import { Route as TrinityPredictionsRouteImport } from './routes/trinity.predictions'
+import { Route as TrinityReportsRouteImport } from './routes/trinity.reports'
+import { Route as TrinityCasesIndexRouteImport } from './routes/trinity.cases.index'
+import { Route as TrinityCasesCaseIdRouteImport } from './routes/trinity.cases.$caseId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BankRoute = BankRouteImport.update({
+  id: '/bank',
+  path: '/bank',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CitizenRoute = CitizenRouteImport.update({
+  id: '/citizen',
+  path: '/citizen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const I4cRoute = I4cRouteImport.update({
+  id: '/i4c',
+  path: '/i4c',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrinityRoute = TrinityRouteImport.update({
+  id: '/trinity',
+  path: '/trinity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrinityIndexRoute = TrinityIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityAlertsRoute = TrinityAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityAuditRoute = TrinityAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityHeatmapRoute = TrinityHeatmapRouteImport.update({
+  id: '/heatmap',
+  path: '/heatmap',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityPredictionsRoute = TrinityPredictionsRouteImport.update({
+  id: '/predictions',
+  path: '/predictions',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityReportsRoute = TrinityReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityCasesIndexRoute = TrinityCasesIndexRouteImport.update({
+  id: '/cases/',
+  path: '/cases/',
+  getParentRoute: () => TrinityRoute,
+} as any)
+const TrinityCasesCaseIdRoute = TrinityCasesCaseIdRouteImport.update({
+  id: '/cases/$caseId',
+  path: '/cases/$caseId',
+  getParentRoute: () => TrinityRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/bank': typeof BankRoute
+  '/citizen': typeof CitizenRoute
+  '/i4c': typeof I4cRoute
+  '/trinity': typeof TrinityRouteWithChildren
+  '/trinity/alerts': typeof TrinityAlertsRoute
+  '/trinity/audit': typeof TrinityAuditRoute
+  '/trinity/heatmap': typeof TrinityHeatmapRoute
+  '/trinity/predictions': typeof TrinityPredictionsRoute
+  '/trinity/reports': typeof TrinityReportsRoute
+  '/trinity/': typeof TrinityIndexRoute
+  '/trinity/cases/$caseId': typeof TrinityCasesCaseIdRoute
+  '/trinity/cases/': typeof TrinityCasesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/bank': typeof BankRoute
+  '/citizen': typeof CitizenRoute
+  '/i4c': typeof I4cRoute
+  '/trinity/alerts': typeof TrinityAlertsRoute
+  '/trinity/audit': typeof TrinityAuditRoute
+  '/trinity/heatmap': typeof TrinityHeatmapRoute
+  '/trinity/predictions': typeof TrinityPredictionsRoute
+  '/trinity/reports': typeof TrinityReportsRoute
+  '/trinity': typeof TrinityIndexRoute
+  '/trinity/cases/$caseId': typeof TrinityCasesCaseIdRoute
+  '/trinity/cases': typeof TrinityCasesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/bank': typeof BankRoute
+  '/citizen': typeof CitizenRoute
+  '/i4c': typeof I4cRoute
+  '/trinity': typeof TrinityRouteWithChildren
+  '/trinity/alerts': typeof TrinityAlertsRoute
+  '/trinity/audit': typeof TrinityAuditRoute
+  '/trinity/heatmap': typeof TrinityHeatmapRoute
+  '/trinity/predictions': typeof TrinityPredictionsRoute
+  '/trinity/reports': typeof TrinityReportsRoute
+  '/trinity/': typeof TrinityIndexRoute
+  '/trinity/cases/$caseId': typeof TrinityCasesCaseIdRoute
+  '/trinity/cases/': typeof TrinityCasesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/bank'
+    | '/citizen'
+    | '/i4c'
+    | '/trinity'
+    | '/trinity/alerts'
+    | '/trinity/audit'
+    | '/trinity/heatmap'
+    | '/trinity/predictions'
+    | '/trinity/reports'
+    | '/trinity/'
+    | '/trinity/cases/$caseId'
+    | '/trinity/cases/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/bank'
+    | '/citizen'
+    | '/i4c'
+    | '/trinity/alerts'
+    | '/trinity/audit'
+    | '/trinity/heatmap'
+    | '/trinity/predictions'
+    | '/trinity/reports'
+    | '/trinity'
+    | '/trinity/cases/$caseId'
+    | '/trinity/cases'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/bank'
+    | '/citizen'
+    | '/i4c'
+    | '/trinity'
+    | '/trinity/alerts'
+    | '/trinity/audit'
+    | '/trinity/heatmap'
+    | '/trinity/predictions'
+    | '/trinity/reports'
+    | '/trinity/'
+    | '/trinity/cases/$caseId'
+    | '/trinity/cases/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  BankRoute: typeof BankRoute
+  CitizenRoute: typeof CitizenRoute
+  I4cRoute: typeof I4cRoute
+  TrinityRoute: typeof TrinityRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +211,132 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bank': {
+      id: '/bank'
+      path: '/bank'
+      fullPath: '/bank'
+      preLoaderRoute: typeof BankRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/citizen': {
+      id: '/citizen'
+      path: '/citizen'
+      fullPath: '/citizen'
+      preLoaderRoute: typeof CitizenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/i4c': {
+      id: '/i4c'
+      path: '/i4c'
+      fullPath: '/i4c'
+      preLoaderRoute: typeof I4cRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trinity': {
+      id: '/trinity'
+      path: '/trinity'
+      fullPath: '/trinity'
+      preLoaderRoute: typeof TrinityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trinity/': {
+      id: '/trinity/'
+      path: '/'
+      fullPath: '/trinity/'
+      preLoaderRoute: typeof TrinityIndexRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/alerts': {
+      id: '/trinity/alerts'
+      path: '/alerts'
+      fullPath: '/trinity/alerts'
+      preLoaderRoute: typeof TrinityAlertsRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/audit': {
+      id: '/trinity/audit'
+      path: '/audit'
+      fullPath: '/trinity/audit'
+      preLoaderRoute: typeof TrinityAuditRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/heatmap': {
+      id: '/trinity/heatmap'
+      path: '/heatmap'
+      fullPath: '/trinity/heatmap'
+      preLoaderRoute: typeof TrinityHeatmapRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/predictions': {
+      id: '/trinity/predictions'
+      path: '/predictions'
+      fullPath: '/trinity/predictions'
+      preLoaderRoute: typeof TrinityPredictionsRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/reports': {
+      id: '/trinity/reports'
+      path: '/reports'
+      fullPath: '/trinity/reports'
+      preLoaderRoute: typeof TrinityReportsRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/cases/': {
+      id: '/trinity/cases/'
+      path: '/cases'
+      fullPath: '/trinity/cases/'
+      preLoaderRoute: typeof TrinityCasesIndexRouteImport
+      parentRoute: typeof TrinityRoute
+    }
+    '/trinity/cases/$caseId': {
+      id: '/trinity/cases/$caseId'
+      path: '/cases/$caseId'
+      fullPath: '/trinity/cases/$caseId'
+      preLoaderRoute: typeof TrinityCasesCaseIdRouteImport
+      parentRoute: typeof TrinityRoute
+    }
   }
 }
 
+interface TrinityRouteChildren {
+  TrinityAlertsRoute: typeof TrinityAlertsRoute
+  TrinityAuditRoute: typeof TrinityAuditRoute
+  TrinityHeatmapRoute: typeof TrinityHeatmapRoute
+  TrinityPredictionsRoute: typeof TrinityPredictionsRoute
+  TrinityReportsRoute: typeof TrinityReportsRoute
+  TrinityIndexRoute: typeof TrinityIndexRoute
+  TrinityCasesCaseIdRoute: typeof TrinityCasesCaseIdRoute
+  TrinityCasesIndexRoute: typeof TrinityCasesIndexRoute
+}
+
+const TrinityRouteChildren: TrinityRouteChildren = {
+  TrinityAlertsRoute: TrinityAlertsRoute,
+  TrinityAuditRoute: TrinityAuditRoute,
+  TrinityHeatmapRoute: TrinityHeatmapRoute,
+  TrinityPredictionsRoute: TrinityPredictionsRoute,
+  TrinityReportsRoute: TrinityReportsRoute,
+  TrinityIndexRoute: TrinityIndexRoute,
+  TrinityCasesCaseIdRoute: TrinityCasesCaseIdRoute,
+  TrinityCasesIndexRoute: TrinityCasesIndexRoute,
+}
+
+const TrinityRouteWithChildren =
+  TrinityRoute._addFileChildren(TrinityRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  BankRoute: BankRoute,
+  CitizenRoute: CitizenRoute,
+  I4cRoute: I4cRoute,
+  TrinityRoute: TrinityRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
