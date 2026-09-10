@@ -24,8 +24,24 @@ export function TabPortal({
   tabs: Tab[];
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? "");
+  const [history, setHistory] = useState<string[]>([]);
   const { role: current, logout, hydrated } = useTrinity();
   const navigate = useNavigate();
+
+  const openTab = (id: string) => {
+    if (id === active) return;
+    setHistory((h) => [...h, active]);
+    setActive(id);
+  };
+
+  const goBack = () => {
+    if (history.length > 0) {
+      setActive(history[history.length - 1]!);
+      setHistory((h) => h.slice(0, -1));
+    } else {
+      void navigate({ to: "/" });
+    }
+  };
 
   useEffect(() => {
     if (hydrated && current === null) void navigate({ to: "/", replace: true });
