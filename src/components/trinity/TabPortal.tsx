@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, Database, ScrollText, LogOut, Lock } from "lucide-react";
+import { ShieldCheck, Database, ScrollText, LogOut, Lock, ArrowLeft } from "lucide-react";
 import { ROLE_LABEL, useTrinity, type Role } from "@/lib/trinity/store";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +24,24 @@ export function TabPortal({
   tabs: Tab[];
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? "");
+  const [history, setHistory] = useState<string[]>([]);
   const { role: current, logout, hydrated } = useTrinity();
   const navigate = useNavigate();
+
+  const openTab = (id: string) => {
+    if (id === active) return;
+    setHistory((h) => [...h, active]);
+    setActive(id);
+  };
+
+  const goBack = () => {
+    if (history.length > 0) {
+      setActive(history[history.length - 1]!);
+      setHistory((h) => h.slice(0, -1));
+    } else {
+      void navigate({ to: "/" });
+    }
+  };
 
   useEffect(() => {
     if (hydrated && current === null) void navigate({ to: "/", replace: true });
@@ -67,7 +83,7 @@ export function TabPortal({
           {tabs.map((t) => (
             <button
               key={t.id}
-              onClick={() => setActive(t.id)}
+              onClick={() => openTab(t.id)}
               className={cn(
                 "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors",
                 active === t.id
@@ -98,6 +114,13 @@ export function TabPortal({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center gap-4 border-b border-border/60 bg-background/70 px-5 py-3 backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <ArrowLeft className="size-3.5" /> Back
+          </button>
           <div className="min-w-0">
             <p className="label-xs">Prototype environment</p>
             <p className="truncate text-sm">{portalName}</p>
@@ -122,7 +145,7 @@ export function TabPortal({
           {tabs.map((t) => (
             <button
               key={t.id}
-              onClick={() => setActive(t.id)}
+              onClick={() => openTab(t.id)}
               className={cn(
                 "whitespace-nowrap rounded-md px-3 py-1.5 text-xs",
                 active === t.id ? "bg-primary/12 text-primary" : "text-muted-foreground",
