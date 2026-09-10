@@ -83,7 +83,7 @@ export function TabPortal({
           {tabs.map((t) => (
             <button
               key={t.id}
-              onClick={() => setActive(t.id)}
+              onClick={() => openTab(t.id)}
               className={cn(
                 "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors",
                 active === t.id
@@ -138,7 +138,7 @@ export function TabPortal({
           {tabs.map((t) => (
             <button
               key={t.id}
-              onClick={() => setActive(t.id)}
+              onClick={() => openTab(t.id)}
               className={cn(
                 "whitespace-nowrap rounded-md px-3 py-1.5 text-xs",
                 active === t.id ? "bg-primary/12 text-primary" : "text-muted-foreground",
