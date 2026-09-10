@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, Database, ScrollText, LogOut, Lock } from "lucide-react";
+import { ShieldCheck, Database, ScrollText, LogOut, Lock, ArrowLeft } from "lucide-react";
 import { ROLE_LABEL, useTrinity, type Role } from "@/lib/trinity/store";
 import { cn } from "@/lib/utils";
 
@@ -114,6 +114,13 @@ export function TabPortal({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center gap-4 border-b border-border/60 bg-background/70 px-5 py-3 backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <ArrowLeft className="size-3.5" /> Back
+          </button>
           <div className="min-w-0">
             <p className="label-xs">Prototype environment</p>
             <p className="truncate text-sm">{portalName}</p>
