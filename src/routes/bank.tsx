@@ -59,6 +59,12 @@ function BankPortal() {
         },
         { id: "linked", label: "Linked Cases", icon: <Link2 className="size-4" />, render: () => <Linked /> },
         {
+          id: "trail",
+          label: "Account / Money-Flow Trail",
+          icon: <ArrowLeftRight className="size-4" />,
+          render: () => <Trail />,
+        },
+        {
           id: "action",
           label: "Action Status",
           icon: <CheckCircle2 className="size-4" />,
@@ -115,7 +121,7 @@ function Dash() {
 }
 
 function Alerts() {
-  const { alerts } = useTrinity();
+  const { alerts, setAlertStatus } = useTrinity();
   const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
@@ -155,10 +161,14 @@ function Alerts() {
                 </span>
               </div>
               <button
-                onClick={() => toast.success("Advisory acknowledged by bank/FI")}
-                className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs text-primary"
+                disabled={a.status !== "New"}
+                onClick={() => {
+                  setAlertStatus(a.id, "Acknowledged");
+                  toast.success("Advisory acknowledged by bank/FI");
+                }}
+                className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs text-primary disabled:opacity-50"
               >
-                Acknowledge advisory
+                {a.status === "New" ? "Acknowledge advisory" : "Acknowledged"}
               </button>
             </Panel>
           );
