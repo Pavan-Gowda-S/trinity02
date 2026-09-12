@@ -293,6 +293,62 @@ function Linked() {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  victim: "Victim (masked)",
+  layer: "Layering",
+  mule: "Mule",
+  cashout: "Cash-out",
+};
+
+function Trail() {
+  const mine = useBankCases();
+  return (
+    <div className="space-y-5">
+      <header>
+        <p className="label-xs">Masked identifiers only</p>
+        <h1 className="mt-1 text-2xl font-light">Account / Money-Flow Trail</h1>
+      </header>
+      <div className="space-y-4">
+        {mine.map((c) => {
+          const flow = buildFlow(c);
+          const rows = flow.edges.map((e) => {
+            const node = flow.nodes.find((n) => n.id === e.to);
+            return { ...e, role: ROLE_LABEL[node?.type ?? ""] ?? "Account" };
+          });
+          return (
+            <Panel key={c.caseId} className="p-0">
+              <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                <span className="font-mono text-xs text-primary">{c.caseId}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Predicted zone · {clusterById(c.clusterId)?.area ?? "—"}
+                </span>
+              </div>
+              <ul className="divide-y divide-border/40">
+                {rows.map((r, i) => (
+                  <li
+                    key={`${c.caseId}-${i}`}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-xs"
+                  >
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      {r.role}
+                    </span>
+                    <span className="font-mono">{r.from}</span>
+                    <span className="text-muted-foreground">→</span>
+                    <span className="font-mono">{r.to}</span>
+                    <span className="ml-auto">{inr(r.amount)}</span>
+                    <span className="font-mono text-[11px] text-muted-foreground">{r.timestamp}</span>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          );
+        })}
+      </div>
+      <Notice />
+    </div>
+  );
+}
+
 function ActionStatus() {
   const { alerts } = useTrinity();
   const mine = useBankCases();
