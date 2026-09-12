@@ -81,7 +81,7 @@ function Notice() {
 
 function Dash() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
@@ -116,7 +116,7 @@ function Dash() {
 
 function Alerts() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
@@ -170,7 +170,7 @@ function Alerts() {
 }
 
 function AtmRisk() {
-  const mine = bankCases();
+  const mine = useBankCases();
   const clusterIds = [...new Set(mine.map((c) => c.clusterId))];
   return (
     <div className="space-y-5">
@@ -212,7 +212,7 @@ function AtmRisk() {
 }
 
 function Txns() {
-  const mine = bankCases();
+  const mine = useBankCases();
   return (
     <div className="space-y-5">
       <header>
@@ -257,7 +257,7 @@ function Txns() {
 }
 
 function Linked() {
-  const mine = bankCases();
+  const mine = useBankCases();
   return (
     <div className="space-y-5">
       <header>
@@ -285,7 +285,7 @@ function Linked() {
 
 function ActionStatus() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
@@ -328,7 +328,7 @@ function ActionStatus() {
 
 function Hist() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
