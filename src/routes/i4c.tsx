@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LayoutDashboard, Map, Network, BellRing, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Map as MapIcon, Network, BellRing, ShieldCheck } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -41,7 +41,7 @@ function I4CPortal() {
       portalTag="National coordination"
       tabs={[
         { id: "nat", label: "National Dashboard", icon: <LayoutDashboard className="size-4" />, render: () => <Nat /> },
-        { id: "map", label: "India Risk Map", icon: <Map className="size-4" />, render: () => <IndiaMap /> },
+        { id: "map", label: "India Risk Map", icon: <MapIcon className="size-4" />, render: () => <IndiaMap /> },
         { id: "cross", label: "Cross-State Intelligence", icon: <Network className="size-4" />, render: () => <Cross /> },
         { id: "alerts", label: "Priority Alerts", icon: <BellRing className="size-4" />, render: () => <Prio /> },
         { id: "audit", label: "Audit & Access", icon: <ShieldCheck className="size-4" />, render: () => <Access /> },
