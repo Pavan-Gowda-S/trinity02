@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { TabPortal } from "@/components/trinity/TabPortal";
 import { Panel, RiskPill, StatCard, MetaRow } from "@/components/trinity/ui";
-import { buildFlow, clusterById, inr, seedCases, atms } from "@/lib/trinity/data";
+import { buildFlow, clusterById, inr, atms } from "@/lib/trinity/data";
 import { useTrinity } from "@/lib/trinity/store";
 
 export const Route = createFileRoute("/bank")({
@@ -35,8 +35,10 @@ export const Route = createFileRoute("/bank")({
 
 const BANK = "Synthetic National Bank";
 
-function bankCases() {
-  return seedCases.filter((c) => c.bank === BANK);
+/** Live cases belonging to this institution (includes complaints filed in the Citizen portal). */
+function useBankCases() {
+  const { cases } = useTrinity();
+  return cases.filter((c) => c.bank === BANK);
 }
 
 function BankPortal() {
@@ -56,6 +58,12 @@ function BankPortal() {
           render: () => <Txns />,
         },
         { id: "linked", label: "Linked Cases", icon: <Link2 className="size-4" />, render: () => <Linked /> },
+        {
+          id: "trail",
+          label: "Account / Money-Flow Trail",
+          icon: <ArrowLeftRight className="size-4" />,
+          render: () => <Trail />,
+        },
         {
           id: "action",
           label: "Action Status",
@@ -79,7 +87,7 @@ function Notice() {
 
 function Dash() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
@@ -113,8 +121,8 @@ function Dash() {
 }
 
 function Alerts() {
-  const { alerts } = useTrinity();
-  const mine = bankCases();
+  const { alerts, setAlertStatus } = useTrinity();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
@@ -153,10 +161,14 @@ function Alerts() {
                 </span>
               </div>
               <button
-                onClick={() => toast.success("Advisory acknowledged by bank/FI")}
-                className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs text-primary"
+                disabled={a.status !== "New"}
+                onClick={() => {
+                  setAlertStatus(a.id, "Acknowledged");
+                  toast.success("Advisory acknowledged by bank/FI");
+                }}
+                className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs text-primary disabled:opacity-50"
               >
-                Acknowledge advisory
+                {a.status === "New" ? "Acknowledge advisory" : "Acknowledged"}
               </button>
             </Panel>
           );
@@ -168,7 +180,7 @@ function Alerts() {
 }
 
 function AtmRisk() {
-  const mine = bankCases();
+  const mine = useBankCases();
   const clusterIds = [...new Set(mine.map((c) => c.clusterId))];
   return (
     <div className="space-y-5">
@@ -210,7 +222,7 @@ function AtmRisk() {
 }
 
 function Txns() {
-  const mine = bankCases();
+  const mine = useBankCases();
   return (
     <div className="space-y-5">
       <header>
@@ -255,7 +267,7 @@ function Txns() {
 }
 
 function Linked() {
-  const mine = bankCases();
+  const mine = useBankCases();
   return (
     <div className="space-y-5">
       <header>
@@ -281,9 +293,65 @@ function Linked() {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  victim: "Victim (masked)",
+  layer: "Layering",
+  mule: "Mule",
+  cashout: "Cash-out",
+};
+
+function Trail() {
+  const mine = useBankCases();
+  return (
+    <div className="space-y-5">
+      <header>
+        <p className="label-xs">Masked identifiers only</p>
+        <h1 className="mt-1 text-2xl font-light">Account / Money-Flow Trail</h1>
+      </header>
+      <div className="space-y-4">
+        {mine.map((c) => {
+          const flow = buildFlow(c);
+          const rows = flow.edges.map((e) => {
+            const node = flow.nodes.find((n) => n.id === e.to);
+            return { ...e, role: ROLE_LABEL[node?.type ?? ""] ?? "Account" };
+          });
+          return (
+            <Panel key={c.caseId} className="p-0">
+              <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                <span className="font-mono text-xs text-primary">{c.caseId}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Predicted zone · {clusterById(c.clusterId)?.area ?? "—"}
+                </span>
+              </div>
+              <ul className="divide-y divide-border/40">
+                {rows.map((r, i) => (
+                  <li
+                    key={`${c.caseId}-${i}`}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-xs"
+                  >
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      {r.role}
+                    </span>
+                    <span className="font-mono">{r.from}</span>
+                    <span className="text-muted-foreground">→</span>
+                    <span className="font-mono">{r.to}</span>
+                    <span className="ml-auto">{inr(r.amount)}</span>
+                    <span className="font-mono text-[11px] text-muted-foreground">{r.timestamp}</span>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          );
+        })}
+      </div>
+      <Notice />
+    </div>
+  );
+}
+
 function ActionStatus() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
@@ -326,7 +394,7 @@ function ActionStatus() {
 
 function Hist() {
   const { alerts } = useTrinity();
-  const mine = bankCases();
+  const mine = useBankCases();
   const relevant = alerts.filter((a) => mine.some((c) => c.caseId === a.caseId));
   return (
     <div className="space-y-5">
