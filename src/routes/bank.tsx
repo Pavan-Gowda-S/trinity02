@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { TabPortal } from "@/components/trinity/TabPortal";
 import { Panel, RiskPill, StatCard, MetaRow } from "@/components/trinity/ui";
-import { buildFlow, clusterById, inr, seedCases, atms } from "@/lib/trinity/data";
+import { buildFlow, clusterById, inr, atms } from "@/lib/trinity/data";
 import { useTrinity } from "@/lib/trinity/store";
 
 export const Route = createFileRoute("/bank")({
@@ -35,8 +35,10 @@ export const Route = createFileRoute("/bank")({
 
 const BANK = "Synthetic National Bank";
 
-function bankCases() {
-  return seedCases.filter((c) => c.bank === BANK);
+/** Live cases belonging to this institution (includes complaints filed in the Citizen portal). */
+function useBankCases() {
+  const { cases } = useTrinity();
+  return cases.filter((c) => c.bank === BANK);
 }
 
 function BankPortal() {
