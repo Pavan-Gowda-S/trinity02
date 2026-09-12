@@ -1,20 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  LayoutDashboard,
-  Map,
-  Network,
-  TrendingUp,
-  BellRing,
-  FolderSearch,
-  FileText,
-  ShieldCheck,
-} from "lucide-react";
+import { LayoutDashboard, Map, Network, BellRing, ShieldCheck } from "lucide-react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,15 +11,8 @@ import {
 } from "recharts";
 import { TabPortal } from "@/components/trinity/TabPortal";
 import { Panel, RiskPill, StatCard, MetaRow } from "@/components/trinity/ui";
-import {
-  alertTrend,
-  atmClusters,
-  clusterById,
-  inr,
-  seedAlerts,
-  seedCases,
-  stateRisk,
-} from "@/lib/trinity/data";
+import { clusterById, riskLevel, type CaseRecord } from "@/lib/trinity/data";
+import { useTrinity } from "@/lib/trinity/store";
 
 export const Route = createFileRoute("/i4c")({
   head: () => ({
@@ -39,7 +21,7 @@ export const Route = createFileRoute("/i4c")({
       {
         name: "description",
         content:
-          "Prototype national view: state-level cybercrime risk, emerging hotspots, cross-state case relationships and alert trends on synthetic data.",
+          "Prototype national view: state-level cybercrime risk, emerging hotspots, cross-state case relationships and priority alerts on synthetic data.",
       },
       { property: "og:title", content: "I4C Intelligence Dashboard — TRINITY Prototype" },
       {
@@ -61,10 +43,7 @@ function I4CPortal() {
         { id: "nat", label: "National Dashboard", icon: <LayoutDashboard className="size-4" />, render: () => <Nat /> },
         { id: "map", label: "India Risk Map", icon: <Map className="size-4" />, render: () => <IndiaMap /> },
         { id: "cross", label: "Cross-State Intelligence", icon: <Network className="size-4" />, render: () => <Cross /> },
-        { id: "trend", label: "Analytics & Trends", icon: <TrendingUp className="size-4" />, render: () => <Trends /> },
         { id: "alerts", label: "Priority Alerts", icon: <BellRing className="size-4" />, render: () => <Prio /> },
-        { id: "cases", label: "Cases", icon: <FolderSearch className="size-4" />, render: () => <Cases /> },
-        { id: "reports", label: "Reports", icon: <FileText className="size-4" />, render: () => <Reports /> },
         { id: "audit", label: "Audit & Access", icon: <ShieldCheck className="size-4" />, render: () => <Access /> },
       ]}
     />
@@ -81,8 +60,42 @@ const chartTip = {
   labelStyle: { color: "var(--color-muted-foreground)" },
 };
 
+interface StateAgg {
+  state: string;
+  cases: number;
+  risk: number;
+  hotspot: string;
+}
+
+/** Aggregate live cases to state level — no victim, bank or money-flow detail. */
+function useStateAggregates(cases: CaseRecord[]): StateAgg[] {
+  const byState = new Map<string, CaseRecord[]>();
+  for (const c of cases) {
+    const list = byState.get(c.state) ?? [];
+    list.push(c);
+    byState.set(c.state, list);
+  }
+  return [...byState.entries()]
+    .map(([state, list]) => {
+      const risk = Math.round(list.reduce((s, c) => s + c.riskScore, 0) / list.length);
+      const top = [...list].sort((a, b) => b.riskScore - a.riskScore)[0]!;
+      return {
+        state,
+        cases: list.length,
+        risk,
+        hotspot: clusterById(top.clusterId)?.area ?? "—",
+      };
+    })
+    .sort((a, b) => b.risk - a.risk);
+}
+
 function Nat() {
-  const totalCases = stateRisk.reduce((s, r) => s + r.cases, 0);
+  const { cases, alerts } = useTrinity();
+  const states = useStateAggregates(cases);
+  const highRisk = [...cases].filter((c) => c.riskScore >= 75).sort((a, b) => b.riskScore - a.riskScore);
+  const highAlerts = alerts.filter((a) => a.priority === "high");
+  const clusterCount = new Set(cases.filter((c) => c.riskScore >= 75).map((c) => c.clusterId)).size;
+
   return (
     <div className="space-y-5">
       <header>
@@ -90,16 +103,16 @@ function Nat() {
         <h1 className="mt-1 text-2xl font-light">National Dashboard</h1>
       </header>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Cases under prediction" value={totalCases} />
-        <StatCard label="States reporting" value={stateRisk.length} />
-        <StatCard label="High-risk clusters" value={atmClusters.filter((c) => c.riskScore >= 75).length} tone="high" />
-        <StatCard label="Alerts this week" value={alertTrend.reduce((s, d) => s + d.alerts, 0)} tone="medium" />
+        <StatCard label="Cases under prediction" value={cases.length} />
+        <StatCard label="States reporting" value={states.length} />
+        <StatCard label="High-risk clusters" value={clusterCount} tone="high" />
+        <StatCard label="High-priority alerts" value={highAlerts.length} tone="medium" />
       </div>
       <Panel>
-        <p className="label-xs">State-level risk index</p>
+        <p className="label-xs">State-level risk index (live aggregate)</p>
         <div className="mt-4 h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stateRisk}>
+            <BarChart data={states}>
               <CartesianGrid stroke="var(--color-border)" vertical={false} />
               <XAxis dataKey="state" stroke="var(--color-muted-foreground)" fontSize={11} />
               <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
@@ -109,11 +122,35 @@ function Nat() {
           </ResponsiveContainer>
         </div>
       </Panel>
+      <Panel>
+        <p className="label-xs">Recent high-risk cases</p>
+        <ul className="mt-3 space-y-2">
+          {highRisk.slice(0, 6).map((c) => (
+            <li key={c.caseId} className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="font-mono text-xs text-primary">{c.caseId}</span>
+              <span className="text-xs text-muted-foreground">{c.state}</span>
+              <span className="min-w-0 flex-1 truncate text-xs">
+                {clusterById(c.clusterId)?.area ?? "—"}
+              </span>
+              <RiskPill score={c.riskScore} />
+            </li>
+          ))}
+          {highRisk.length === 0 ? (
+            <li className="text-xs text-muted-foreground">No high-risk cases in the current window.</li>
+          ) : null}
+        </ul>
+      </Panel>
+      <p className="text-[11px] text-muted-foreground">
+        Aggregate-only national view on synthetic data. Victim references, institution names and
+        money-flow detail are not exposed to this role.
+      </p>
     </div>
   );
 }
 
 function IndiaMap() {
+  const { cases } = useTrinity();
+  const states = useStateAggregates(cases);
   return (
     <div className="space-y-5">
       <header>
@@ -121,11 +158,11 @@ function IndiaMap() {
         <h1 className="mt-1 text-2xl font-light">India Risk Map</h1>
       </header>
       <div className="grid gap-4 lg:grid-cols-2">
-        {stateRisk.map((s) => (
+        {states.map((s) => (
           <Panel key={s.state} className="panel-hover">
             <div className="flex items-center justify-between">
               <p className="text-sm">{s.state}</p>
-              <RiskPill score={s.risk} />
+              <RiskPill score={s.risk} level={riskLevel(s.risk)} />
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">
               {s.cases} synthetic cases · Emerging hotspot: {s.hotspot}
@@ -185,50 +222,9 @@ function Cross() {
   );
 }
 
-function Trends() {
-  return (
-    <div className="space-y-5">
-      <header>
-        <p className="label-xs">Weekly synthetic trend</p>
-        <h1 className="mt-1 text-2xl font-light">Analytics &amp; Trends</h1>
-      </header>
-      <Panel>
-        <p className="label-xs">Alert volume and high-priority share</p>
-        <div className="mt-4 h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={alertTrend}>
-              <CartesianGrid stroke="var(--color-border)" vertical={false} />
-              <XAxis dataKey="day" stroke="var(--color-muted-foreground)" fontSize={11} />
-              <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
-              <Tooltip {...chartTip} />
-              <Line type="monotone" dataKey="alerts" stroke="var(--color-primary)" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="high" stroke="var(--color-risk-high)" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </Panel>
-      <Panel>
-        <p className="label-xs">High-priority clusters</p>
-        <ul className="mt-3 space-y-2">
-          {[...atmClusters]
-            .sort((a, b) => b.riskScore - a.riskScore)
-            .slice(0, 4)
-            .map((c) => (
-              <li key={c.id} className="flex items-center gap-3 text-sm">
-                <span className="min-w-0 flex-1 truncate">
-                  {c.label} — {c.area}
-                </span>
-                <span className="text-[11px] text-muted-foreground">{c.predictedTime}</span>
-                <RiskPill score={c.riskScore} />
-              </li>
-            ))}
-        </ul>
-      </Panel>
-    </div>
-  );
-}
-
 function Prio() {
+  const { alerts } = useTrinity();
+  const high = alerts.filter((a) => a.priority === "high");
   return (
     <div className="space-y-5">
       <header>
@@ -236,84 +232,22 @@ function Prio() {
         <h1 className="mt-1 text-2xl font-light">Priority Alerts</h1>
       </header>
       <div className="space-y-3">
-        {seedAlerts
-          .filter((a) => a.priority === "high")
-          .map((a) => (
-            <Panel key={a.id}>
-              <div className="flex flex-wrap items-center gap-3">
-                <RiskPill level={a.priority} label="HIGH PRIORITY" />
-                <span className="font-mono text-xs text-primary">{a.caseId}</span>
-                <span className="text-xs text-muted-foreground">
-                  {clusterById(a.clusterId)?.area} · {clusterById(a.clusterId)?.predictedTime}
-                </span>
-                <span className="ml-auto text-xs">{a.status}</span>
-              </div>
-              <p className="mt-2 text-sm">{a.note}</p>
-            </Panel>
-          ))}
-      </div>
-    </div>
-  );
-}
-
-function Cases() {
-  return (
-    <div className="space-y-5">
-      <header>
-        <p className="label-xs">Aggregated synthetic cases</p>
-        <h1 className="mt-1 text-2xl font-light">Cases</h1>
-      </header>
-      <Panel className="overflow-x-auto p-0 scroll-slim">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead>
-            <tr className="border-b border-border/60 text-left">
-              {["Case ID", "State", "Amount", "Risk", "Predicted zone", "Status"].map((h) => (
-                <th key={h} className="label-xs px-4 py-3 font-normal">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {seedCases.map((c) => (
-              <tr key={c.caseId} className="border-b border-border/40 last:border-0">
-                <td className="px-4 py-2.5 font-mono text-xs text-primary">{c.caseId}</td>
-                <td className="px-4 py-2.5 text-xs">{c.state}</td>
-                <td className="px-4 py-2.5">{inr(c.amount)}</td>
-                <td className="px-4 py-2.5">
-                  <RiskPill score={c.riskScore} />
-                </td>
-                <td className="px-4 py-2.5 text-xs">{clusterById(c.clusterId)?.area}</td>
-                <td className="px-4 py-2.5 text-xs text-muted-foreground">{c.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Panel>
-    </div>
-  );
-}
-
-function Reports() {
-  return (
-    <div className="space-y-5">
-      <header>
-        <p className="label-xs">National summaries</p>
-        <h1 className="mt-1 text-2xl font-light">Reports</h1>
-      </header>
-      <div className="grid gap-4 md:grid-cols-2">
-        {[
-          { id: "RPT-N-01", title: "Weekly national cash-out risk digest", period: "Week 10, 2026" },
-          { id: "RPT-N-02", title: "Emerging hotspot advisory — Karnataka", period: "March 2026" },
-          { id: "RPT-N-03", title: "Cross-state mule network overview", period: "Q1 2026" },
-          { id: "RPT-N-04", title: "Prototype model factor review", period: "March 2026" },
-        ].map((r) => (
-          <Panel key={r.id} className="panel-hover">
-            <p className="font-mono text-[11px] text-muted-foreground">{r.id}</p>
-            <p className="mt-1 text-sm">{r.title}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">{r.period} · Synthetic</p>
+        {high.map((a) => (
+          <Panel key={a.id}>
+            <div className="flex flex-wrap items-center gap-3">
+              <RiskPill level={a.priority} label="HIGH PRIORITY" />
+              <span className="font-mono text-xs text-primary">{a.caseId}</span>
+              <span className="text-xs text-muted-foreground">
+                {clusterById(a.clusterId)?.area} · {clusterById(a.clusterId)?.predictedTime}
+              </span>
+              <span className="ml-auto text-xs">{a.status}</span>
+            </div>
+            <p className="mt-2 text-sm">{a.note}</p>
           </Panel>
         ))}
+        {high.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No high-priority alerts at present.</p>
+        ) : null}
       </div>
     </div>
   );
